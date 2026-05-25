@@ -6,9 +6,10 @@ import { Asset } from "@/types/editor";
 type Props = {
   assets: Asset[];
   onAsset: (asset: Asset) => void;
+  className?: string;
 };
 
-export function AssetSidebar({ assets, onAsset }: Props) {
+export function AssetSidebar({ assets, onAsset, className = "" }: Props) {
   async function handleFile(file?: File) {
     if (!file) return;
     const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -27,7 +28,7 @@ export function AssetSidebar({ assets, onAsset }: Props) {
   }
 
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-line bg-panel">
+    <aside className={`flex h-full w-64 shrink-0 flex-col border-r border-line bg-panel ${className}`}>
       <div className="border-b border-line p-4">
         <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-line bg-panel2 px-3 py-2 text-sm font-bold transition hover:border-violet">
           <ImagePlus size={16} />

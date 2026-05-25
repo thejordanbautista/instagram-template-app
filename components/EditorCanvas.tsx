@@ -26,6 +26,8 @@ export function EditorCanvas({
   onHtmlChange
 }: Props) {
   const [loaded, setLoaded] = useState(false);
+  const [scale, setScale] = useState(0.64);
+  const frameWrapRef = useRef<HTMLDivElement | null>(null);
   const scaleRef = useRef(0.64);
   const projectRef = useRef(project);
 
@@ -36,6 +38,32 @@ export function EditorCanvas({
   useEffect(() => {
     projectRef.current = project;
   }, [project]);
+
+  useEffect(() => {
+    const container = frameWrapRef.current;
+    if (!container) return;
+
+    function updateScale() {
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const gutter = window.innerWidth < 1024 ? 28 : 64;
+      const availableWidth = Math.max(280, rect.width - gutter);
+      const availableHeight = Math.max(280, rect.height - gutter);
+      const next = Math.min(1, availableWidth / 1080, availableHeight / 1080);
+      scaleRef.current = next;
+      setScale(next);
+    }
+
+    updateScale();
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(container);
+    window.addEventListener("orientationchange", updateScale);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("orientationchange", updateScale);
+    };
+  }, []);
 
   useEffect(() => {
     if (!loaded) return;
@@ -109,18 +137,21 @@ export function EditorCanvas({
   }
 
   return (
-    <div className="flex min-w-0 flex-1 items-center justify-center overflow-auto bg-[radial-gradient(circle_at_center,rgba(124,106,247,0.11),transparent_42%),#0b0b12] p-8">
-      <div className="relative">
-        <div className="absolute -inset-5 rounded border border-white/10 bg-black/20 shadow-2xl" />
+    <div
+      className="flex min-w-0 flex-1 items-center justify-center overflow-auto bg-[radial-gradient(circle_at_center,rgba(124,106,247,0.11),transparent_42%),#0b0b12] p-3 lg:p-8"
+      ref={frameWrapRef}
+    >
+      <div className="relative" style={{ width: 1080 * scale, height: 1080 * scale }}>
+        <div className="absolute rounded border border-white/10 bg-black/20 shadow-2xl" style={{ inset: -Math.max(4, 20 * scale) }} />
         <iframe
-          className="relative block origin-center rounded bg-transparent shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
+          className="relative block origin-top-left rounded bg-transparent shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
           ref={iframeRef}
           sandbox="allow-same-origin allow-scripts allow-popups"
           srcDoc={project.html}
           style={{
             width: 1080,
             height: 1080,
-            transform: `scale(${scaleRef.current})`
+            transform: `scale(${scale})`
           }}
           title="Template preview"
           onLoad={() => {

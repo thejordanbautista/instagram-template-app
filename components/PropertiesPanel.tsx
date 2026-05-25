@@ -12,6 +12,7 @@ type Props = {
   onImageReplace: (assetId: string) => void;
   onImageSettings: (settings: ImageSettings) => void;
   onDelete: () => void;
+  className?: string;
 };
 
 const defaultImageSettings: ImageSettings = { fit: "cover", x: 50, y: 50, zoom: 100 };
@@ -24,12 +25,13 @@ export function PropertiesPanel({
   onTextStyle,
   onImageReplace,
   onImageSettings,
-  onDelete
+  onDelete,
+  className = ""
 }: Props) {
   const settings = imageSettings ?? defaultImageSettings;
 
   return (
-    <aside className="flex min-h-0 w-full flex-1 flex-col bg-panel">
+    <aside className={`flex min-h-0 w-full flex-1 flex-col bg-panel ${className}`}>
       <div className="border-b border-line p-4">
         <div className="text-xs font-bold uppercase tracking-[0.18em] text-white/40">Properties</div>
         <div className="mt-1 truncate text-lg font-bold">{selected?.name ?? "No selection"}</div>

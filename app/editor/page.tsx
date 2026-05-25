@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { ArrowLeft, Save } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ImagePlus, Layers3, Save, SlidersHorizontal, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AssetSidebar } from "@/components/AssetSidebar";
 import { EditorCanvas } from "@/components/EditorCanvas";
@@ -25,10 +25,12 @@ import { useEditorStore } from "@/lib/store";
 import { Asset, ImageSettings, TemplateProject } from "@/types/editor";
 
 const fallbackImageSettings: ImageSettings = { fit: "cover", x: 50, y: 50, zoom: 100 };
+type MobilePanel = "assets" | "properties" | "layers" | null;
 
 export default function EditorPage() {
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const [mobilePanel, setMobilePanel] = useState<MobilePanel>(null);
   const {
     currentProject,
     selectedId,
@@ -174,34 +176,65 @@ export default function EditorPage() {
     removeElement(id);
   }
 
+  function renderPropertiesPanel() {
+    return (
+      <PropertiesPanel
+        assets={project.assets}
+        imageSettings={selected ? project.imageSettings[selected.id] : undefined}
+        selected={selected}
+        onDelete={() => selected && handleDelete(selected.id)}
+        onImageReplace={handleImageReplace}
+        onImageSettings={(settings) => selected && applyImageSettings(selected.id, settings)}
+        onTextChange={handleTextChange}
+        onTextStyle={handleTextStyle}
+      />
+    );
+  }
+
+  function renderLayersPanel() {
+    return (
+      <LayersPanel
+        elements={project.elements}
+        selectedId={selectedId}
+        onDelete={handleDelete}
+        onSelect={(id) => {
+          setSelectedId(id);
+          setMobilePanel("properties");
+          syncSelection(doc(), id);
+        }}
+        onVisibility={handleVisibility}
+      />
+    );
+  }
+
   return (
-    <main className="flex h-screen min-h-0 flex-col overflow-hidden bg-ink">
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-line bg-panel px-4">
+    <main className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-ink">
+      <header className="flex min-h-16 shrink-0 items-center justify-between gap-3 border-b border-line bg-panel px-3 py-2 lg:h-16 lg:px-4 lg:py-0">
         <div className="flex min-w-0 items-center gap-3">
-          <button className="rounded border border-line p-2 text-white/70 hover:border-violet hover:text-white" onClick={() => router.push("/")}>
+          <button className="shrink-0 rounded border border-line p-2 text-white/70 hover:border-violet hover:text-white" onClick={() => router.push("/")}>
             <ArrowLeft size={17} />
           </button>
           <div className="min-w-0">
             <div className="truncate text-sm font-black">{project.name}</div>
-            <div className="truncate text-xs text-white/38">{project.originalFileName}</div>
+            <div className="hidden truncate text-xs text-white/38 sm:block">{project.originalFileName}</div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <TemplateUploader compact onProject={importProject} />
           <button
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-line bg-panel2 px-4 py-2 text-sm font-bold transition hover:border-violet"
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-line bg-panel2 px-3 py-2 text-sm font-bold transition hover:border-violet sm:px-4"
             onClick={saveProject}
           >
             <Save size={16} />
-            Save Project
+            <span className="hidden sm:inline">Save Project</span>
           </button>
-          <ExportButton iframeRef={iframeRef} fileName={project.originalFileName} />
+          <ExportButton compact iframeRef={iframeRef} fileName={project.originalFileName} />
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1">
-        <AssetSidebar assets={project.assets} onAsset={handleAsset} />
+      <div className="flex min-h-0 flex-1 pb-16 lg:pb-0">
+        <AssetSidebar assets={project.assets} className="hidden lg:flex" onAsset={handleAsset} />
         <EditorCanvas
           iframeRef={iframeRef}
           project={project}
@@ -211,32 +244,64 @@ export default function EditorPage() {
           onImageSettings={setImageSettings}
           onSelect={(id) => {
             setSelectedId(id);
+            if (id) setMobilePanel("properties");
             syncSelection(doc(), id ?? undefined);
           }}
         />
-        <div className="flex h-full w-80 shrink-0 flex-col border-l border-line bg-panel">
-          <PropertiesPanel
-            assets={project.assets}
-            imageSettings={selected ? project.imageSettings[selected.id] : undefined}
-            selected={selected}
-            onDelete={() => selected && handleDelete(selected.id)}
-            onImageReplace={handleImageReplace}
-            onImageSettings={(settings) => selected && applyImageSettings(selected.id, settings)}
-            onTextChange={handleTextChange}
-            onTextStyle={handleTextStyle}
-          />
-          <LayersPanel
-            elements={project.elements}
-            selectedId={selectedId}
-            onDelete={handleDelete}
-            onSelect={(id) => {
-              setSelectedId(id);
-              syncSelection(doc(), id);
-            }}
-            onVisibility={handleVisibility}
-          />
+        <div className="hidden h-full w-80 shrink-0 flex-col border-l border-line bg-panel lg:flex">
+          {renderPropertiesPanel()}
+          {renderLayersPanel()}
         </div>
       </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-panel/95 backdrop-blur lg:hidden">
+        <div className="grid h-16 grid-cols-3">
+          <button
+            className={`flex flex-col items-center justify-center gap-1 text-xs font-bold ${mobilePanel === "assets" ? "text-violet" : "text-white/60"}`}
+            onClick={() => setMobilePanel(mobilePanel === "assets" ? null : "assets")}
+            type="button"
+          >
+            <ImagePlus size={19} />
+            Assets
+          </button>
+          <button
+            className={`flex flex-col items-center justify-center gap-1 text-xs font-bold ${mobilePanel === "properties" ? "text-violet" : "text-white/60"}`}
+            onClick={() => setMobilePanel(mobilePanel === "properties" ? null : "properties")}
+            type="button"
+          >
+            <SlidersHorizontal size={19} />
+            Edit
+          </button>
+          <button
+            className={`flex flex-col items-center justify-center gap-1 text-xs font-bold ${mobilePanel === "layers" ? "text-violet" : "text-white/60"}`}
+            onClick={() => setMobilePanel(mobilePanel === "layers" ? null : "layers")}
+            type="button"
+          >
+            <Layers3 size={19} />
+            Layers
+          </button>
+        </div>
+      </div>
+
+      {mobilePanel ? (
+        <div className="fixed inset-x-0 bottom-16 z-40 max-h-[64dvh] overflow-hidden border-t border-line bg-panel shadow-2xl lg:hidden">
+          <div className="flex items-center justify-between border-b border-line px-4 py-3">
+            <div className="text-xs font-bold uppercase tracking-[0.18em] text-white/45">
+              {mobilePanel === "assets" ? "Assets" : mobilePanel === "properties" ? "Edit Selection" : "Layers"}
+            </div>
+            <button className="rounded border border-line p-2 text-white/65" onClick={() => setMobilePanel(null)} type="button">
+              <X size={16} />
+            </button>
+          </div>
+          <div className="thin-scrollbar max-h-[calc(64dvh-53px)] overflow-auto">
+            {mobilePanel === "assets" ? (
+              <AssetSidebar assets={project.assets} className="h-auto min-h-[360px] w-full border-r-0" onAsset={handleAsset} />
+            ) : null}
+            {mobilePanel === "properties" ? renderPropertiesPanel() : null}
+            {mobilePanel === "layers" ? renderLayersPanel() : null}
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

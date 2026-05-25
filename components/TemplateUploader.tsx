@@ -67,7 +67,7 @@ export function TemplateUploader({ onProject, compact, large }: Props) {
         }}
       >
         <button
-          className="inline-flex items-center justify-center gap-2 rounded-md border border-line bg-violet px-4 py-2 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border border-line bg-violet px-4 py-2 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-60"
           disabled={status === "loading"}
           onClick={() => inputRef.current?.click()}
           type="button"
@@ -93,7 +93,7 @@ export function TemplateUploader({ onProject, compact, large }: Props) {
   return (
     <div className="inline-flex flex-col items-end gap-1">
       <button
-        className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border border-line bg-violet px-4 py-2 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-60"
+        className="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border border-line bg-violet px-4 py-2 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-60"
         disabled={status === "loading"}
         onClick={() => inputRef.current?.click()}
         type="button"

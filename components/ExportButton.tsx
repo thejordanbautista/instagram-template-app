@@ -8,9 +8,10 @@ import { getCanvasElement, getSerializableHtml, syncSelection } from "@/lib/edit
 type Props = {
   iframeRef: MutableRefObject<HTMLIFrameElement | null>;
   fileName: string;
+  compact?: boolean;
 };
 
-export function ExportButton({ iframeRef, fileName }: Props) {
+export function ExportButton({ iframeRef, fileName, compact }: Props) {
   async function exportPng() {
     const doc = iframeRef.current?.contentDocument;
     const canvasElement = getCanvasElement(doc ?? null);
@@ -80,7 +81,7 @@ export function ExportButton({ iframeRef, fileName }: Props) {
       type="button"
     >
       <Download size={16} />
-      Export PNG
+      <span className={compact ? "hidden sm:inline" : ""}>Export PNG</span>
     </button>
   );
 }

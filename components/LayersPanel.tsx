@@ -9,11 +9,12 @@ type Props = {
   onSelect: (id: string) => void;
   onVisibility: (id: string, visible: boolean) => void;
   onDelete: (id: string) => void;
+  className?: string;
 };
 
-export function LayersPanel({ elements, selectedId, onSelect, onVisibility, onDelete }: Props) {
+export function LayersPanel({ elements, selectedId, onSelect, onVisibility, onDelete, className = "" }: Props) {
   return (
-    <section className="border-t border-line p-4">
+    <section className={`border-t border-line p-4 ${className}`}>
       <div className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-white/40">Layers</div>
       <div className="thin-scrollbar max-h-64 space-y-2 overflow-auto">
         {elements.map((element) => {

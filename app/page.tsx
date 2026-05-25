@@ -77,7 +77,7 @@ export default function HomePage() {
           ))}
 
           {projects.length === 0 ? (
-            <div className="col-span-full flex min-h-[420px] items-center justify-center rounded border border-dashed border-line bg-panel/55">
+            <div className="col-span-full flex min-h-[420px] items-center justify-center rounded border border-dashed border-line bg-panel/55 p-6">
               <div className="max-w-sm text-center">
                 <h2 className="text-xl font-bold">Upload a template to start.</h2>
                 <p className="mt-2 text-sm leading-6 text-white/45">
